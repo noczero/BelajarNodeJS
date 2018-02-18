@@ -20,5 +20,8 @@
   "bugs": {
     "url": "https://github.com/noczero/BelajarNodeJS/issues"
   },
-  "homepage": "https://github.com/noczero/BelajarNodeJS#readme"
+  "homepage": "https://github.com/noczero/BelajarNodeJS#readme",
+  "dependencies": {
+    "serialport": "^6.0.5"
+  }
 }
