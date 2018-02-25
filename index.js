@@ -1,5 +1,5 @@
 const SerialPort = require('serialport'); //import package
-const portNumber = "COM31" || process.argv[2] ; // ambil argument ke 2 di command
+const portNumber =  process.argv[2] ; // ambil argument ke 2 di command
 console.log("Argument 2 :  " + portNumber); // nampilin port Number
 const myPort = new SerialPort(portNumber, {
 	baudRate : 57600
@@ -28,7 +28,55 @@ myPort.on('open', ()=> {
 		});
 	},timeOut);
 });
-// event yang munculin data dari arduino. pake 'data'
-parser.on('data', (data)=> {
-	console.log(data);
+// // event yang munculin data dari arduino. pake 'data'
+// parser.on('data', (data)=> {
+// 	//let hasilParsing = parsingRAWData(data, ",");
+// 	//console.log(hasilParsing);
+// 	//console.log(data);
+// });
+
+
+
+// EXPREES DAN SOCKET IO
+const express = require('express'); // import package express
+const app = express(); 
+const server = require('http').createServer(app);
+const io = require('socket.io').listen(server); // import package socket.io
+const path = require('path'); // import package path (sudah default ada)
+
+app.use(express.static(path.join(__dirname,'www'))); // untuk nempation file web kita di folder www
+const portListen = 1234;
+server.listen(portListen);
+
+// buat socket event
+let jumlahClient = 0;
+io.on('connection' , (socket)=> {
+	jumlahClient++;
+	console.log('New Client Connected...\n'  + 'Total :' + jumlahClient);
+
+	parser.on('data', (data)=>{
+		//panggil si parsing
+		let hasilParsing = parsingRAWData(data, ",");
+		if(hasilParsing[0] == "OK"){
+			socket.emit('socketData',{datahasil : hasilParsing});
+			//console.log("Send to client");
+		}
+	});	
+
+	socket.on('disconnect' , ()=> {
+		jumlahClient--;
+		console.log('Client disconnected \n' + 'Total :' + jumlahClient);
+	});
 });
+
+// FUNCTION UNTUK PARSING
+// argument 1 : data yang diparsing ex: 123 434 5334
+// argument 2 : pemisah
+// return array data [0] =123 [1] =434 [2] =5334
+function parsingRAWData(data,delimiter){
+	let result;
+	result = data.toString().replace(/(\r\n|\n|\r)/gm,"").split(delimiter);
+
+	return result;
+}
+
